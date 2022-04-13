@@ -4,6 +4,8 @@ const app = express();
 
 const server = app.listen(3000);
 
+const users = {};
+
 const io = require('socket.io')(server, {
   cors: {
     origin: '*',
@@ -11,9 +13,12 @@ const io = require('socket.io')(server, {
 });
 
 io.on('connection', socket => {
-  console.log('new User');
+  socket.on('new-user', name => {
+    users[socket.id] = name;
+    socket.broadcast.emit('user-connected', name)
+  })
   socket.emit('chat-message', 'Welcome!');
   socket.on('send-chat-message', message => {
-    console.log(message)
+    socket.broadcast.emit('chat-message', {message: message, name: users[socket.id]})
   })
 });
